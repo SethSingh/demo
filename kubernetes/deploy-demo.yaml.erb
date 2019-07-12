@@ -1,0 +1,43 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: <%= config['project_name'] %>
+  namespace: <%= config['namespace'] %>
+  labels:
+    app: <%= config['project_name'] %>
+spec:
+  template:
+    metadata:
+      name: <%= config['project_name'] %>
+      labels:
+        app: <%= config['project_name'] %>
+    spec:
+      containers:
+        - name: <%= config['project_name'] %>
+          image: <%= config['image_registry'] %>/<%= config['project_name'] %>:<%= config['image_tag'] %>
+          imagePullPolicy: <%= config['pull_policy'] %>
+          resources:
+            limits:
+              cpu: 0.5
+              memory: 2000Mi
+          volumeMounts:
+            - name: <%= config['project_name'] %>-secrets
+              mountPath: /apps/secrets/<%= config['project_name'] %>
+              readOnly: true
+          ports:
+            - containerPort: 8080
+              name: server
+            - containerPort: 8081
+              name: management
+          args:
+              - java
+              - -Xmx970m
+              - -cp
+              - <%= config['jar_prefix'] %>.job.jar
+              - <%= config['server_main_class'] %>
+      volumes:
+        - name: <%= config['project_name'] %>-secrets
+          secret:
+            secretName: <%= config['project_name'] %>
+
+  replicas: 1

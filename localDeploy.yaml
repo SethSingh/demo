@@ -1,0 +1,29 @@
+# REPLACE with your app's name
+hyphenedApp=demo
+  # USE YOUR OWN LDAP if you want it to work with your artifactory credentials
+ldap=ssingh
+
+artifactoryKeyPath=~/.artifactory_key
+cluster_context=gke_liveramp-eng-dm_us-central1_dmbe-prod-cluster
+artifactName=gcp-prod
+flavor=default
+
+  # more detail on KDT available here: https://git.liveramp.net/MasterRepos/kube_deploy_tools
+
+  # note that this may use dependencies from up to 24 hours ago
+  # use "mvn -u clean install" if you need the most recent dependencies
+  #mvn clean install
+
+docker build -t local-registry/$hyphenedApp .
+
+  ## `kdt push` is sometimes really slow if it has to push big images to GCR
+  ## if it's hanging on the `docker push` command, you can interrupt and
+  ## copy paste that command to get more progress reporting.
+  ## Once that completes you can run `kdt push` again and it should be really fast
+kdt push $hyphenedApp
+
+kdt generate
+
+kdt publish --user $ldap --password $(cat $artifactoryKeyPath)
+
+kdt deploy --context $cluster_context --dry-run=false --artifact $artifactName --build dev --flavor $flavor

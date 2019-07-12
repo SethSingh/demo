@@ -1,0 +1,50 @@
+# This tells kube_deploy_tools what deployment varieties
+# exist for your project and any special parameters
+# to inject into template rendering for each one.
+version: 2
+
+# Please only include the Kubernetes clusters your project will deploy to.
+artifacts:
+  - name: gcp-prod
+    image_registry: gcp
+    flags:
+      target: gcp
+      environment: prod
+      cloud: gcp
+  - name: gcp-dev
+    image_registry: gcp
+    flags:
+      target: gcp
+      environment: dev
+      cloud: gcp
+
+default_flags:
+  namespace: default
+  consul_name: demo
+  project_name: demo
+  jar_prefix: demo-0.0.1-SNAPSHOT
+  server_main_class: com.example.demo.DemoApplication
+  pull_policy: Always
+
+# the registries you might be pulling docker images from
+image_registries:
+  - name: gcp
+    driver: gcp
+    prefix: gcr.io/liveramp-eng
+  - name: local
+    driver: noop
+    prefix: local-registry
+
+# The flavors section can be specified globally or at the cluster level. It's
+# a freeform way to specify how you'd like to separate stages or kinds of
+# deployments. For example: blue-green or canary-stable methodology.
+flavors:
+  default: {}
+  # As an example, these flavors will define canary and stable tracks for every
+  # cluster type, making config['release_track'] set in each flavor context for
+  # use in template rendering.
+  #
+  # canary:
+  #   release_track: canary
+  # stable:
+  #   release_track: stable
